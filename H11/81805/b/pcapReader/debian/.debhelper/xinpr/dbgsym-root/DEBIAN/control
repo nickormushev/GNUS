@@ -1,0 +1,12 @@
+Package: xinpr-dbgsym
+Source: xinpr
+Version: 1.0-1.1
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Nikolay Kormushev <nkormushev@gmail.com>
+Installed-Size: 23
+Depends: xinpr (= 1.0-1.1)
+Section: debug
+Priority: optional
+Description: debug symbols for xinpr
+Build-Ids: 40cb56693da1632b9e7ca4d10d38fef5fd058acc

@@ -1,0 +1,59 @@
+#### Xmas is null pcap reader(XINPR)
+XINPR is null is a small program written in c used for extracting Xmas and Null
+scan packets from a pcap file. This was a triump. This project was made for the
+good of all of us except the ones who are dead.  It has a limited use case
+since it was only meant as a learning experience on how to work with network
+traffic and parse it. 
+
+## Functionalities 
+The program can be used to read certain types of pcap files(see Support). It
+only requires a pcap file as a single argument and it should print out all the
+Xmas and Null scan packets in the file using the following format: 
+
+<source Mac address> <destination Mac address> <ether type> [<bad_csum>] <source IP>
+<destination IP> <IP header protocol field> [<bad_csum>] <source port>
+<destination port> <type>
+
+The first bad checksum shows that the IP packet header checksum was bad. The
+second is for the tcp header checksum. The last field shows the type of the
+field which is either Xmas or Null. If we hit a bad_csum the rest of the row is 
+not printed
+
+## Example use 
+Bellow we can see an example output of xinpr. I shortened it a bit because it
+was too long but you get the idea.
+
+$ xinpr foo.pcap
+
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 47093 3000 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 47094 3000 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 53210 3000 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 53211 3000 Null
+....
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 47138 3001 Xmas
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 48822 3002 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 48823 3002 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 51193 3002 Null
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 bad_csum
+....
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 192.168.42.57 192.168.42.187 6 64698 3002 Xmas
+14:58:D0:B9:85:1F 52:54:00:29:70:66 0x0800 bad_csum
+
+## Install
+To compile from source you need to run the following commands:
+./configure
+make
+make install
+
+The configure script does not have any special options for the project. Only the standart ones 
+that are always supported. For a more in depth explanation read the INSTALL file.
+
+You can also build a deb file if you desire using debuild and install it with dpkg -i <deb file>
+
+## Support
+XINPR supports only pcap files that have packets only for ethernet networks and only the IP and TCP
+protocols are used. This is because I wrote the program as part of the GNU System course at Sofia
+Univercity St. Kliment Ohridski.
+
+## Error codes
+1) input error 2) open file error 3) read error 4) ip header under 20 bytes 5) tcp header under 20 bytes 

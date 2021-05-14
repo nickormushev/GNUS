@@ -1,0 +1,41 @@
+Format: 1.8
+Date: Sun, 03 Jan 2021 15:21:16 +0200
+Source: xinpr
+Binary: xinpr
+Architecture: source amd64
+Version: 1.0-1.1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: Nikolay Kormushev <nkormushev@gmail.com>
+Changed-By: nikolay <nkormushev@gmail.com>
+Description:
+ xinpr      - read xmas and null packets from pcap file
+Changes:
+ xinpr (1.0-1.1) UNRELEASED; urgency=low
+ .
+   [ nikolay ]
+   * Initial release of xinpr.
+ .
+   [ nikolay ]
+   * Rebuild after fixing printing
+Checksums-Sha1:
+ a511d9784d9bca2561c6eaa190dc6814d92078e5 749 xinpr_1.0-1.1.dsc
+ 72237b22dae0b42f8ee8fb9c8dbd722185a1872b 236972 xinpr_1.0.orig.tar.gz
+ b3fca2849a22194a25b873aab671e26da299ae7e 820 xinpr_1.0-1.1.debian.tar.xz
+ 7646632b3b3208dda5216cd54c84eb45cdab7ab2 8260 xinpr-dbgsym_1.0-1.1_amd64.deb
+ 4c5310ce87be76800795c58dfdd7e12310a698d6 5114 xinpr_1.0-1.1_amd64.buildinfo
+ d8127b312cdc8faecc1b53d719e9c3a97a78275d 4646 xinpr_1.0-1.1_amd64.deb
+Checksums-Sha256:
+ 73f0a65fe0acea235a12baab7e2d8db1664b080c3bce2765fd0aa19edeb7e158 749 xinpr_1.0-1.1.dsc
+ acc4ce7b151130410a60f0f4421be9d3035c20bcb8cda5becfde210a19d19cc9 236972 xinpr_1.0.orig.tar.gz
+ f7af54ff083ad35de8264a069adb34c5e18031b3dea708dad6543c1d9de8f372 820 xinpr_1.0-1.1.debian.tar.xz
+ 87c0f411cd4d90be77b8fa6273798faf03b11b9271e08bcf69f8947c5c01024c 8260 xinpr-dbgsym_1.0-1.1_amd64.deb
+ 16933b63f3cbe2d0c53ad27c73bccf4dd123dab649b098af73e92657954db472 5114 xinpr_1.0-1.1_amd64.buildinfo
+ 2663ccaaa6cf84be8451292f23a2fa6b9e7340c34bd879b5b80b8ce6708250fe 4646 xinpr_1.0-1.1_amd64.deb
+Files:
+ 20998322530648f7da9aebe140e073eb 749 misc optional xinpr_1.0-1.1.dsc
+ 561825a9cb23d442a02038dd2f365c33 236972 misc optional xinpr_1.0.orig.tar.gz
+ e864712369e153849534597c6b8f731f 820 misc optional xinpr_1.0-1.1.debian.tar.xz
+ 3d3d1df2865c579ddfc96644b86d88b9 8260 debug optional xinpr-dbgsym_1.0-1.1_amd64.deb
+ 572d52b0e3eecadda1080986cd7c92d8 5114 misc optional xinpr_1.0-1.1_amd64.buildinfo
+ a4f8816cbd41f4e5415b5a46e78aad35 4646 misc optional xinpr_1.0-1.1_amd64.deb

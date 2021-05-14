@@ -1,0 +1,11 @@
+Package: xinpr
+Version: 1.0-1.1
+Architecture: amd64
+Maintainer: Nikolay Kormushev <nkormushev@gmail.com>
+Installed-Size: 21
+Depends: libc6 (>= 2.4)
+Section: misc
+Priority: optional
+Description: read xmas and null packets from pcap file
+  xinpr reads xmas and null scan packets from a pcap file. It displays packet information like
+  source and destination ip address, mac addresses, the type of packet and much more.

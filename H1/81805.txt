@@ -1,0 +1,216 @@
+First I issued a file command to see what was the file type with the idea it could give me some
+clue. The result was XZ compressed data. I tried to see if I could uncompress the data or if this
+was some kind of tarball. As far as I could see though that was not the case. After that I decided
+to use fdisk -l to see what data I could get from the image. This was the output:
+
+  Disk baz: 4,23 MiB, 4433408 bytes, 8659 sectors
+  Units: sectors of 1 * 512 = 512 bytes
+  Sector size (logical/physical): 512 bytes / 512 bytes 
+  I/O size (minimum/optimal): 512 bytes / 512 bytes
+
+I saw no disklabel type and could not figure out of this had a master boot record or if it was gpt.
+Or if one of the two even exists.
+
+I decided to try and mount the image and see what would happen. The output said: mount: /mnt: wrong
+fs type, bad option, bad superblock on /dev/loop4, missing codepage or helper program, or other
+error.
+
+This output did not tell me much of anything else. I decided to see what a loop device was after
+seeing it and I read the wikipedia page which was recommended to me in the past by Hackman when you
+are trying to learn something.
+
+By reading that page I found out that image files require the -o flag for mount so they can be
+mounted to a loop device which in turn is used as any other device under dev. This can be also
+divided into two commands the first of which is losetup and the second of course is mount.  Read
+more about lsopen in it's man page and so a really interesting flag that can scan the mbr of file
+which might be usefull later. Later I realised that the flag was just for a brand new loop device
+and was of no use to me
+
+I ran this command: mount -o loop baz /mnt, but the result was the same as above.  Decide to try to
+just map the img to a loop device. That in turn was successful but i do not know if that gives me
+more information or if it holds the same data. In theory if I fix the issue I migth be able to mount
+it though.
+
+I found this interesting blog post about how someone broke their filesystem/setup and decided to
+read into it looking for clues on how I should go about solving my homework. This is the link to the
+blog: https://www.robmeerman.co.uk/unix/lvm_recovery From there I went on to look at some
+definitions and got some ideas for what to look for in xxd.  Decided to see if LVM was used similar
+to the blog post. After seeing that there is no LVM field I decided to see if I could find some
+other expressive field to the side but after a bit of scrolling I gave up. Might attempt that again
+though if nothing else comes to mind.
+
+Saw that the file command had special options for reading block devises like -s and -L to follow
+links. Tried to use that both on the mounted loop device and the baz file but only got the output of
+xz compressed data. I am wondering if this is the actual disk data or if it is actually compressed.
+
+I found out I was an idiot and that this was actually a xz compressed data and the reason I could
+not uncompress it was because it did not have an .xz extension which lead to an error :).
+
+Ran fdisk -l again and this time I saw that the file was a raid device and had a disklabel type
+dos(it has an MBR). Used xxd to see that most of the MBR was zeroes which seemed a bit strange
+considering that the example shown in class had stuff like GRUB/Geom and a lot more.
+
+I googled a bit and found this link: https://nixhacker.com/explaining-the-magic-of-mbr-and-its/ I
+admit the site is too beautiful for this course but to be honest it gave a ton of usefull
+information.  The first 440 bytes of the mbr are all zeroes. This means that the MBR execution code
+is missing. There is a single partition on the file and there are no bootable partitions. The "fd"
+bytes showed this partition is a linux raid autodetect which I already knew due to the fdisk command
+but it was still cool to see it in hex.  The partition types can be found on wikipedia:
+https://en.wikipedia.org/wiki/Partition_type. I also found that the partition started at 0008 0000
+and had 00f8 0100 sectors. When I ran the xxd command I saw there was data different than 0 and
+attempted to pres ctrl + c and a managed to stop the output there on row 00118620. Need to see where
+this data starts but should probably do something with a bit more thinking involved :D.
+
+Tried to copy the first 440 bytes from my mbr to the baz file as to me at least it looked like the
+code part of the MBR was not there. I did this with the dd command: dd if=/dev/sda of=baz bs=440
+count=1 conv=notrunc It did the job but I still could not mount baz file to a directory neither as a
+loop device or a normal device.  Overall I think this was broken but even after I fixed it there was
+no change.
+
+I tried to use the mkfs.ext4 command which was a bad idea in hindsight considering it deleted the
+data on the disk.  Once I mounted it there was only a lost+found file in /mnt
+
+Considering that the output of fdisk showed me that the baz file had raid type I decided to read up
+on mdadm.  After reading on mdadm and still unsure of how to get any usefull data for the partition.
+I decided to try: blkid -o value -s TYPE to see if I could find and fstype but this lead to no
+avail. I feel like I am missing something or I need to do more reading before attempting commands.
+
+I tried to mount the partition on the baz file to /dev/loop5 so I could hopefully mount it. I was
+inspired to do this by the lvm_recovory link above where he finds the ext4 file system. To do this I
+used the output of fdisk -l to get where the partition started by taking the number from the start
+column and multiplying it by 512 which gave me an offset for losetup. The resulting command was:
+losetup -o 1048576 /dev/loop5 baz I tried to mount /dev/loop5 but got mount: /mnt: unknown
+filesystem type 'linux_raid_member' which spelled progress for me. This is likely due to the
+partition being a linux raid autodetect and not ext4 or something like that. I believe I need to do
+something with mdadm to load the raid partition so I can read it after that. I am unsure what
+exactly I need to do at the moment though and I am tired since it is late.
+
+Started looking at some of the mdadm commands and decided to go with the mdadm --examine command to
+look at /dev/loop5 The output was:
+          Magic : a92b4efc
+        Version : 1.2
+    Feature Map : 0x0
+     Array UUID : a7be0c5d:a38e8144:1ac2e275:9f2dccec
+           Name : callisto:0
+  Creation Time : Sat Oct 22 16:14:17 2016
+     Raid Level : raid1
+   Raid Devices : 2
+
+ Avail Dev Size : 128928 (62.95 MiB 66.01 MB)
+     Array Size : 64448 (62.94 MiB 65.99 MB)
+  Used Dev Size : 128896 (62.94 MiB 65.99 MB)
+    Data Offset : 96 sectors
+   Super Offset : 8 sectors
+   Unused Space : before=8 sectors, after=32 sectors
+          State : clean
+    Device UUID : c20dd67d:e0d0378e:a00b6bd4:18bee94c
+
+    Update Time : Fri Oct 16 21:54:12 2020
+  Bad Block Log : 512 entries available at offset 72 sectors
+       Checksum : 6e4c7c4a - correct
+         Events : 19
+
+
+   Device Role : Active device 0
+   Array State : A. ('A' == active, '.' == missing, 'R' == replacing)
+
+This gave a ton of information. Mainly the raid level which is obviously one from the above output.
+Mirroring FTW. The second important part is the number of raid devices which are 2 which is logical
+considering the raid level.
+
+After googling the linux_raid_member command I found what I needed to type so I could load the raid
+device.  I found this link
+https://serverfault.com/questions/383362/mount-unknown-filesystem-type-linux-raid-member/383373 .
+This is probably not the best place to look for information but I was just searching for the command
+to load the mdadm device and found this: mdadm --assemble --run /dev/md127 /dev/loop4 . I decided to
+read more in the man page about the modes of the mdadm command like assemble, grow, create and so
+on. I found out assemble was for runing or starting already created RAID arrays. I had previously
+also read the man page but failed to find the --run flag. In future I should read more carefully.
+
+After finally being able to mount the RAID device /dev/md127 I did so and yet again I got an error:
+mount: /mnt: unknown filesystem type 'crypto_LUKS'. This time I remembered we talked about how to
+encrypt a hard disk and decided to look in the presentation and read up on it before I google the
+error directly. I found this link in the presentation: https://gitlab.com/cryptsetup/cryptsetup and
+started reading. 
+
+I started by reading up on what a device mapper is on wikipedia:
+https://en.wikipedia.org/wiki/Device_mapper#:~:text=The%20device%20mapper%20is%20a,such%20as%20file%20system%20snapshots.
+In the meantime I also found out that file -ls listed the files on the raid partition.  Firstly I
+read this gitlab page to understand more about dmcrypt:
+https://gitlab.com/cryptsetup/cryptsetup/-/wikis/DMCrypt There was a lot of information there and I
+will not remember it all but I understood the general idea and now know where to look for if I need
+to read or configure a device mapper crypt table :D. I found the cryptsetup open command in the
+cryptsetup man page and wrote: cryptsetup open --type luks /dev/md127 encrypted so I could create a
+new luks device. I was prompted for a password and I remembered the password for the student on the
+container we were given was asdf and I tried it and it worked :D. Guessed it from the first try.
+This was probably not the intended solution but I am unsure of any other way to find the password
+except a brute force attack I suppose. The idea of me being able to find out what the password is
+for the encrypted device seems alogical to me as well since the whole point is that it should not be
+possible to decrypt it. I also remember that during lectures we commented on this as well and said
+that all data is lost if you forget the passphrase for the encrypted device. So I suppose I was
+lucky :D
+
+Now of course this was not the end and there is an LVM on the device and I need to solve how to
+mount the file system that resides on it. I used pvdisplay /dev/mapper/encrypted so I could read
+what physical volumes are on the device I got this as the output:
+
+  --- Physical volume ---
+  PV Name               /dev/mapper/encrypted
+  VG Name               vgmaya
+  PV Size               <60,94 MiB / not usable <4,94 MiB
+  Allocatable           yes 
+  PE Size               4,00 MiB
+  Total PE              14
+  Free PE               4
+  Allocated PE          10
+  PV UUID               c3FxLW-aLnR-qwGj-Xxes-jvGn-Sej1-wfE1pe
+   
+
+I saw that this PV was a part of a VG named vgmaya  and some other information like allocated
+Physical extents etc.  The pvs command also showed me similar information. I used vgdisplay vgmaya
+for more information, lvs, vgs and lvs as well.  I found out that the volume group was a part of a
+logical volume named. I found out that the LVM was already a device under dev at the path
+/dev/vgmaya/turing. I ran the mount /dev/vgmaya/turing /mnt command and found the Portal reference
+XD. I started to wonder if the cake was a lie was a metaphor for the fact that there is more to discover
+but I decided I am overthinking it :D.
+
+Mistake from earlier: I stated that file -ls showed me the files on the raid device, but the
+resulting file was only one.  This means file -ls obviously does not list the files on the device
+because there is only one file as far as I can see. Plus I ran the command on the encrypted device.
+I am unsure if it is even possible to see file data when the device os in such a state. In the man
+page the -s flag is for special files such as block devices and the -l flag is defined like this:
+Shows a list of patterns and their strength. I am unsure what these patterns are for. I found out 
+that the file command uses these so called magic patterns from man magic(5) to determine the type of a file.
+When a test for a pattern passes the output I saw was printed out. So file -ls just showed me the patterns
+that matched my file which were used to determine it's type.
+
+Also my idea of somehow copying my MBR into the baz file and running it was a bit dumb. I should have
+realised sooner that I just needed to load the partitions as a loop object. This took the most time
+to figure out for me.
+
+On the next day I decided to look for hidden files on the file system because I have a feeling there might be 
+some. First a used blkid to find out what the filesystem type was on the lvm and the result was btrfs. After 
+that I decided to check out the integrity of the file system with fsck.btrfs which lead me to the man page of
+btrfs and btrfs-check and no error was found. I also used the du command to see if the sizes of the partition 
+and the space that the jpg file match up and they did not but I was unsure if it was because of metadata for 
+the LVM which begs the question where are all the configuration files that were on the original system? Might
+be on a separate partition I suppose.
+
+I wanted to scan the baz file again using a tool that can detect mistakes or failures(testdisk). It said that the CHS and LBA
+values did not match and that the heads per cylinder are 41 but might be 64. I was also curious of the data on the 
+/dev/md127 device was not corrupted. I found this link: https://raid.wiki.kernel.org/index.php/Dm-integrity and 
+decided to try it out on the raid device but it said there was no integrity superblock so I suppose it was not used.
+The raid integrity seems ok because the checksum is correct. I saw this earlier but forgot. Still read up on more 
+interesting topics so no harm done. The second raid device is missing still. I want to find where it is placed and 
+see if I can load it or maybe the disk that was found in the task was one of the raid devices and the other was on
+another disk. I realised this idea was a bit dumb because we first divide the device into partitions and then we 
+say that these partitions are RAID partitions and we add them to a software RAID. That means that because we only have
+one RAID partition I do not have access to the second RAID device and it can't be on the same partition. I have no more
+ideas of where files might be hidden. I suspected that I had to recover the files but I could not find a way.
+
+I used some btfs filesystem commands to see if there were any hidden files and I could not find any.
+Tried btrfs restore as well but I only got back the cake.jpg file and nothing else on the device.
+
+Sorry for the English in this document. The next one will be in Bulgarian I just did not have the time to translate it 
+all. To get to the first solution I think it took me around 7-10 hours and for the bonus tinkering for fun I spent
+3-5 hours.

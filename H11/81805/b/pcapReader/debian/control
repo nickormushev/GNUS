@@ -1,0 +1,13 @@
+Source: xinpr
+Maintainer: Nikolay Kormushev <nkormushev@gmail.com>
+Section: misc
+Priority: optional
+Standards-Version: 1.0.0
+Build-Depends: debhelper (>= 9)
+
+Package: xinpr
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: read xmas and null packets from pcap file
+  xinpr reads xmas and null scan packets from a pcap file. It displays packet information like 
+  source and destination ip address, mac addresses, the type of packet and much more.

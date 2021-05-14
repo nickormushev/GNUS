@@ -1,0 +1,17 @@
+0d630c14f516b6374109bff3f83c27dd  ./README
+4abc2448a2c2a3d03b123d05d4737538  ./NEWS
+d32239bcb673463ab874e80d47fae504  ./COPYING
+bf47fa442a90bd26dcf56886985ed799  ./pcap_reader
+d41d8cd98f00b204e9800998ecf8427e  ./ChangeLog
+96bca478eb80d757f34ff2f48b8af8c1  ./AUTHORS
+0796ed7f2b6ddd10f4fb1ce691b1fdfc  ./configure.ac
+c71bf10fc7c6d869b5fd369c6e696700  ./Makefile.am
+2513b148a753e91c709867ed24eb1dff  ./aclocal.m4
+aff783032ace09bb590075ff6ff2dbd7  ./configure
+500b9244caa7a7ab23ece1db37efa76d  ./compile
+b965f98f97ba53fa9e2ed5528caa4efc  ./install-sh
+5f2a276ee7b8decec541391229d03591  ./missing
+d0697e131465c2bdd0af3b07a84d2878  ./INSTALL
+386223c42821864f26fd0782d357d513  ./depcomp
+14325d752c8b1176cf3aa684ab59def5  ./Makefile.in
+480fa48962d69e08755b72fffac16af4  ./main.c
